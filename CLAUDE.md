@@ -118,10 +118,24 @@ CREATE POLICY "team_access" ON contacts
 - Sends to `claude-sonnet-4-6` — never expose `ANTHROPIC_API_KEY` to client
 - Returns structured JSON validated with Zod before writing to DB
 
-### Document Parsing (Browser-Only)
+### Document Parsing (Server-Side)
 
-- `import('mammoth')` for .docx extraction (dynamic import, no SSR)
-- `import('xlsx')` for .xlsx extraction (dynamic import, no SSR)
+- `import('mammoth')` for .docx extraction (dynamic import, server-only)
+- `import('xlsx')` for .xlsx extraction (dynamic import, server-only)
+- Both packages are in `dependencies` (not devDependencies) — required for Vercel build
+
+### Supabase Dynamic Table Queries
+
+When calling `.from(dynamicString)` with a runtime variable (not a string literal), TypeScript
+infers `GenericStringError` in the return type. Always cast through `unknown` first:
+
+```typescript
+// CORRECT — cast through unknown when table name is a variable
+const entity = data as unknown as Contact
+
+// WRONG — direct cast rejected by TypeScript strict mode
+const entity = data as Contact
+```
 
 ## Database Tables
 
@@ -223,6 +237,19 @@ Critical E2E flows:
 - `src/lib/parsers/docxParser.ts`, `xlsxParser.ts` — file parsers
 - `src/components/import/ImportUploader.tsx` — Client Component: file drop zone, upload, results preview, save to notes
 - `src/components/import/ImportHistory.tsx` — Client Component: list of past imports with status indicators
+
+### Phase 11: CI/CD + Deployment — IN PROGRESS
+- GitHub repo: `jonnywang-ux/Ventureflow-V1` (branch: `main`)
+- Vercel project: `ventureflow-v1` — auto-deploys on push to `main`
+- Supabase: all 4 migrations applied (001–004), test user `playwright@ventureflow.test` in `team_members`
+- GitHub Actions secrets configured: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, PLAYWRIGHT_TEST_EMAIL, PLAYWRIGHT_TEST_PASSWORD
+- Vercel env vars needed: same set + NEXT_PUBLIC_APP_URL (set to Vercel domain after first successful deploy)
+- Build fixes applied: mammoth+xlsx added to dependencies, Supabase GenericStringError casts fixed
+
+**Known issues to investigate on live deploy:**
+- Verify all pages render correctly with real Supabase data
+- Confirm auth redirect loop does not occur in production
+- Test import + synthesis flows with real Anthropic API key
 
 ### Phase 10: E2E Tests — DONE
 - `playwright.config.ts` — setup + chromium projects, storageState auth, workers:1
