@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, createAdminClient, getTeamId } from '@/lib/supabase/server'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { AddActionModal } from '@/components/modals/AddActionModal'
 import type { Action } from '@/types'
@@ -69,22 +69,21 @@ export default async function ActionsPage() {
 
   if (!user) return null
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
-  const { data: teamMembers } = await supabase
+  if (!teamId) return null
+
+  const admin = createAdminClient()
+  const { data: teamMembers } = await admin
     .from('team_members')
     .select('user_id, initials, color')
-    .eq('team_id', member?.team_id ?? '')
+    .eq('team_id', teamId)
     .limit(20)
 
   const { data: actions } = await supabase
     .from('actions')
     .select('id, title, description, status, due_date, assigned_to, created_at')
-    .eq('team_id', member?.team_id ?? '')
+    .eq('team_id', teamId)
     .in('status', ['open', 'in_progress'])
     .order('due_date', { ascending: true, nullsFirst: false })
     .limit(200)

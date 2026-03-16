@@ -1,6 +1,6 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import { generateSynthesis, SynthesisError } from '@/lib/ai/synthesis'
 
 export async function POST() {
@@ -14,19 +14,15 @@ export async function POST() {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: membership } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
-  if (!membership) {
+  if (!teamId) {
     return NextResponse.json({ success: false, error: 'No team found' }, { status: 403 })
   }
 
   let content: string
   try {
-    content = await generateSynthesis(membership.team_id)
+    content = await generateSynthesis(teamId)
   } catch (err) {
     if (err instanceof SynthesisError) {
       console.error('[synthesis] SynthesisError:', err.message, err.cause)
@@ -39,7 +35,7 @@ export async function POST() {
 
   const { error: upsertError } = await supabase.from('thesis').upsert(
     {
-      team_id: membership.team_id,
+      team_id: teamId,
       content,
       created_by: user.id,
       generated_at: new Date().toISOString(),

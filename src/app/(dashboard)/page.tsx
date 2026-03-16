@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import type { ActivityLogEntry, EntityType } from '@/types'
 
 const ENTITY_COLORS: Record<EntityType, string> = {
@@ -26,13 +26,9 @@ export default async function DashboardPage() {
 
   if (!user) return null
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id, initials')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
-  const teamId = member?.team_id ?? ''
+  if (!teamId) return null
 
   const [contacts, ideas, actions, notes, activityResult] = await Promise.all([
     supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('team_id', teamId),

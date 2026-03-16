@@ -35,3 +35,13 @@ export async function createServerClient() {
     }
   )
 }
+
+export async function getTeamId(userId: string): Promise<string | null> {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('team_members')
+    .select('team_id')
+    .eq('user_id', userId)
+    .single()
+  return data?.team_id ?? null
+}

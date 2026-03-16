@@ -1,7 +1,7 @@
 'use server'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import type { ActionResult, Comment, EntityType } from '@/types'
 
 const ENTITY_TO_PATH: Record<string, string> = {
@@ -36,12 +36,8 @@ export async function createComment(
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Unauthorized' }
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
-  if (!member) return { success: false, error: 'Not a team member' }
+  const teamId = await getTeamId(user.id)
+  if (!teamId) return { success: false, error: 'Not a team member' }
 
   const { data, error } = await supabase
     .from('comments')
@@ -49,7 +45,7 @@ export async function createComment(
       content: parsed.data.content,
       entity_type: parsed.data.entityType as EntityType,
       entity_id: parsed.data.entityId,
-      team_id: member.team_id,
+      team_id: teamId,
       added_by: user.id,
     })
     .select('id, team_id, added_by, entity_type, entity_id, content, created_at')

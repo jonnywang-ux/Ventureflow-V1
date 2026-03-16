@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import { RegionChip } from '@/components/ui/RegionChip'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { AddIdeaModal } from '@/components/modals/AddIdeaModal'
@@ -21,13 +21,9 @@ export default async function IdeasPage() {
 
   if (!user) return null
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
-  const teamId = member?.team_id ?? ''
+  if (!teamId) return null
 
   const ideasResult = await supabase
     .from('ideas')

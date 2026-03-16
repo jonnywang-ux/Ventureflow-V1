@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ImportUploader from '@/components/import/ImportUploader'
 import ImportHistory from '@/components/import/ImportHistory'
@@ -20,20 +20,16 @@ export default async function ImportPage() {
     redirect('/login')
   }
 
-  const { data: teamMembersData } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
-  if (!teamMembersData) {
+  if (!teamId) {
     redirect('/login')
   }
 
   const { data: importRecords } = await supabase
     .from('import_history')
     .select('id, file_name, import_type, status, error_message, created_at')
-    .eq('team_id', teamMembersData.team_id)
+    .eq('team_id', teamId)
     .order('created_at', { ascending: false })
     .limit(50)
 

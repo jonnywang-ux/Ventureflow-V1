@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { AddNoteModal } from '@/components/modals/AddNoteModal'
 import type { Note } from '@/types'
@@ -20,16 +20,12 @@ export default async function NotesPage() {
 
   if (!user) return null
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
   const { data: notes } = await supabase
     .from('notes')
     .select('id, title, content, tags, created_at, updated_at, added_by, team_id')
-    .eq('team_id', member?.team_id ?? '')
+    .eq('team_id', teamId ?? '')
     .order('created_at', { ascending: false })
     .limit(200)
 

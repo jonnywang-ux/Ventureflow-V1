@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, createAdminClient, getTeamId } from '@/lib/supabase/server'
 import { CommentThread } from '@/components/comments/CommentThread'
 import { Avatar } from '@/components/ui/Avatar'
 import { RegionChip } from '@/components/ui/RegionChip'
@@ -315,12 +315,8 @@ export default async function EntityDetailPage({ params }: PageParams) {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
-  if (!member) return null
+  const teamId = await getTeamId(user.id)
+  if (!teamId) return null
 
   // Fetch entity
   const selectMap: Record<EntitySegment, string> = {
@@ -334,7 +330,7 @@ export default async function EntityDetailPage({ params }: PageParams) {
     .from(tableName)
     .select(selectMap[segment])
     .eq('id', id)
-    .eq('team_id', member.team_id)
+    .eq('team_id', teamId)
     .single()
 
   if (!entityData) notFound()
@@ -349,10 +345,11 @@ export default async function EntityDetailPage({ params }: PageParams) {
     .limit(500)
 
   // Fetch team members for avatars
-  const { data: teamMembersData } = await supabase
+  const adminForMembers = createAdminClient()
+  const { data: teamMembersData } = await adminForMembers
     .from('team_members')
     .select('id, team_id, user_id, initials, color, created_at')
-    .eq('team_id', member.team_id)
+    .eq('team_id', teamId)
     .limit(20)
 
   const comments = (commentsData ?? []) as Comment[]

@@ -1,6 +1,6 @@
 import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import { parseDocx } from '@/lib/parsers/docxParser'
 import { parseXlsx } from '@/lib/parsers/xlsxParser'
 import { extractFromNotes, ExtractionError } from '@/lib/ai/extraction'
@@ -24,18 +24,11 @@ export async function POST(request: NextRequest) {
   }
 
   // Resolve team_id for the authenticated user
-  const { data: membership, error: membershipError } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .limit(1)
-    .single()
+  const teamId = await getTeamId(user.id)
 
-  if (membershipError || !membership) {
+  if (!teamId) {
     return NextResponse.json({ success: false, error: 'Team membership not found' }, { status: 403 })
   }
-
-  const teamId = membership.team_id
 
   let formData: FormData
   try {

@@ -1,7 +1,7 @@
 'use server'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import type { ActionResult, Action } from '@/types'
 
 const schema = z.object({
@@ -29,12 +29,8 @@ export async function createAction(formData: FormData): Promise<ActionResult<Act
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Unauthorized' }
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
-  if (!member) return { success: false, error: 'Not a team member' }
+  const teamId = await getTeamId(user.id)
+  if (!teamId) return { success: false, error: 'Not a team member' }
 
   const { data, error } = await supabase
     .from('actions')
@@ -43,7 +39,7 @@ export async function createAction(formData: FormData): Promise<ActionResult<Act
       description: parsed.data.description || null,
       due_date: parsed.data.due_date || null,
       assigned_to: parsed.data.assigned_to || null,
-      team_id: member.team_id,
+      team_id: teamId,
       added_by: user.id,
     })
     .select(

@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SynthesisViewer from '@/components/synthesis/SynthesisViewer'
 import GenerateSynthesisButton from '@/components/synthesis/GenerateSynthesisButton'
@@ -14,20 +14,16 @@ export default async function SynthesisPage() {
     redirect('/login')
   }
 
-  const { data: membership } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
-  if (!membership) {
+  if (!teamId) {
     redirect('/login')
   }
 
   const { data: thesis } = await supabase
     .from('thesis')
     .select('id, content, generated_at, created_by')
-    .eq('team_id', membership.team_id)
+    .eq('team_id', teamId)
     .single()
 
   return (

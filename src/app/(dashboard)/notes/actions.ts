@@ -1,7 +1,7 @@
 'use server'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import type { ActionResult, Note } from '@/types'
 
 const schema = z.object({
@@ -27,12 +27,8 @@ export async function createNote(formData: FormData): Promise<ActionResult<Note>
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Unauthorized' }
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
-  if (!member) return { success: false, error: 'Not a team member' }
+  const teamId = await getTeamId(user.id)
+  if (!teamId) return { success: false, error: 'Not a team member' }
 
   const tags = parsed.data.tags
     ? parsed.data.tags.split(',').map((t) => t.trim()).filter(Boolean)
@@ -44,7 +40,7 @@ export async function createNote(formData: FormData): Promise<ActionResult<Note>
       title: parsed.data.title,
       content: parsed.data.content,
       tags,
-      team_id: member.team_id,
+      team_id: teamId,
       added_by: user.id,
     })
     .select('id, title, content, tags, created_at, updated_at, added_by, team_id')

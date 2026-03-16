@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getTeamId } from '@/lib/supabase/server'
 import { Avatar } from '@/components/ui/Avatar'
 import { RegionChip } from '@/components/ui/RegionChip'
 import { WarmthBadge } from '@/components/ui/WarmthBadge'
@@ -32,16 +32,12 @@ export default async function ContactsPage() {
 
   if (!user) return null
 
-  const { data: member } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-    .single()
+  const teamId = await getTeamId(user.id)
 
   const { data: contacts } = await supabase
     .from('contacts')
     .select('id, name, role, organization, region, tags, warmth, notes')
-    .eq('team_id', member?.team_id ?? '')
+    .eq('team_id', teamId ?? '')
     .order('created_at', { ascending: false })
     .limit(200)
 
