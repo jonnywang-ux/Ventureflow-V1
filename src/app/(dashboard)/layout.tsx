@@ -33,7 +33,31 @@ export default async function DashboardLayout({
     .single()
 
   if (!member) {
-    redirect('/login')
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Geist Mono, monospace',
+      }}>
+        <div style={{ textAlign: 'center', maxWidth: '400px', padding: '32px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--ink2)', marginBottom: '8px' }}>
+            Your account is not linked to a team.
+          </p>
+          <p style={{ fontSize: '12px', color: 'var(--ink3)', marginBottom: '20px' }}>
+            Contact your team admin to be added. ({user.email})
+          </p>
+          <a
+            href="/login"
+            style={{ fontSize: '12px', color: 'var(--ink3)', textDecoration: 'underline' }}
+          >
+            Sign in with a different account
+          </a>
+        </div>
+      </div>
+    )
   }
 
   return (
