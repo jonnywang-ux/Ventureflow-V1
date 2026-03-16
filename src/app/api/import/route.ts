@@ -1,16 +1,21 @@
 import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient, getTeamId } from '@/lib/supabase/server'
+import { createAdminClient, createServerClient, getTeamId } from '@/lib/supabase/server'
 import { parseDocx } from '@/lib/parsers/docxParser'
 import { parseXlsx } from '@/lib/parsers/xlsxParser'
+import { parsePdf } from '@/lib/parsers/pdfParser'
+import { parseMd } from '@/lib/parsers/mdParser'
 import { extractFromNotes, ExtractionError } from '@/lib/ai/extraction'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
-const ALLOWED_TYPES: Record<string, 'docx' | 'xlsx'> = {
+const ALLOWED_TYPES: Record<string, 'docx' | 'xlsx' | 'pdf' | 'md'> = {
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
   'application/vnd.ms-excel': 'xlsx',
+  'application/pdf': 'pdf',
+  'text/markdown': 'md',
+  'text/plain': 'md',
 }
 
 export async function POST(request: NextRequest) {
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Unsupported file type. Upload a .docx or .xlsx file.',
+        error: 'Unsupported file type. Upload a .docx, .xlsx, .pdf, or .md file.',
       },
       { status: 400 }
     )
@@ -86,11 +91,23 @@ export async function POST(request: NextRequest) {
 
   const importId = importRecord.id
 
-  // Parse file
+  // Parse file + upload to Storage
   let rawText: string
+  let filePath: string | null = null
   try {
     const buffer = Buffer.from(await file.arrayBuffer())
-    rawText = importType === 'docx' ? await parseDocx(buffer) : await parseXlsx(buffer)
+
+    if (importType === 'docx') rawText = await parseDocx(buffer)
+    else if (importType === 'xlsx') rawText = await parseXlsx(buffer)
+    else if (importType === 'pdf') rawText = await parsePdf(buffer)
+    else rawText = await parseMd(buffer)
+
+    const admin = createAdminClient()
+    const storagePath = `${teamId}/${file.name}`
+    const { data: uploaded } = await admin.storage
+      .from('imports')
+      .upload(storagePath, buffer, { upsert: true, contentType: file.type })
+    filePath = uploaded?.path ?? null
   } catch (err) {
     console.error('[import] Parse error:', err)
     await supabase
@@ -137,7 +154,7 @@ export async function POST(request: NextRequest) {
   // Mark import as success
   await supabase
     .from('import_history')
-    .update({ status: 'success' })
+    .update({ status: 'success', file_path: filePath })
     .eq('id', importId)
 
   return NextResponse.json({

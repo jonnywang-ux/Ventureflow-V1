@@ -1,6 +1,7 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 export interface ImportRecord {
   id: string
@@ -13,6 +14,7 @@ export interface ImportRecord {
 
 interface ImportHistoryProps {
   records: ImportRecord[]
+  teamId: string
 }
 
 const formatDate = (dateString: string): string => {
@@ -48,7 +50,44 @@ const getStatusDot = (status: string): string => {
   }
 }
 
-export default function ImportHistory({ records }: ImportHistoryProps) {
+export default function ImportHistory({ records: initialRecords, teamId }: ImportHistoryProps) {
+  const [records, setRecords] = useState<ImportRecord[]>(initialRecords)
+
+  useEffect(() => {
+    const supabase = createBrowserClient()
+
+    const channel = supabase
+      .channel('import_history_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'import_history',
+          filter: `team_id=eq.${teamId}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newRecord = payload.new as ImportRecord
+            setRecords((prev) => [newRecord, ...prev])
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as ImportRecord
+            setRecords((prev) =>
+              prev.map((r) => (r.id === updated.id ? updated : r))
+            )
+          } else if (payload.eventType === 'DELETE') {
+            const deleted = payload.old as { id: string }
+            setRecords((prev) => prev.filter((r) => r.id !== deleted.id))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [teamId])
+
   return (
     <div>
       <h3 style={{

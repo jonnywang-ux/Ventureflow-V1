@@ -185,7 +185,7 @@ export default function ImportUploader() {
               color: 'var(--ink4)',
               margin: 0,
             }}>
-              Accept .docx, .xlsx • Max 10MB
+              Accept .docx, .xlsx, .pdf, .md • Max 10MB
             </p>
           </div>
 
@@ -193,7 +193,7 @@ export default function ImportUploader() {
             data-testid="file-input"
             ref={fileInputRef}
             type="file"
-            accept=".docx,.xlsx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            accept=".docx,.xlsx,.pdf,.md,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf,text/markdown,text/plain"
             onChange={handleFileChange}
             style={{ display: 'none' }}
           />
