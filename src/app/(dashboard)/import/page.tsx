@@ -53,7 +53,7 @@ export default async function ImportPage() {
           color: 'var(--ink3)',
           margin: 0,
         }}>
-          Bulk import .docx or .xlsx files. Claude extracts structure automatically.
+          Bulk import .docx, .xlsx, .pdf, or .md files. Claude extracts structure automatically.
         </p>
       </div>
 
@@ -63,7 +63,7 @@ export default async function ImportPage() {
         gap: '24px',
       }}>
         <ImportUploader />
-        <ImportHistory records={records} />
+        <ImportHistory records={records} teamId={teamId} />
       </div>
     </div>
   )
