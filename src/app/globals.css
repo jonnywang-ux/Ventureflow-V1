@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Serif&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f5f2ec;
+  --bg2: #ede9e0;
+  --surface: #ffffff;
+  --surface2: #f9f7f3;
+  --border: #ddd9d0;
+  --border-dark: #c8c3b8;
+
+  --ink: #1a1814;
+  --ink2: #4a4640;
+  --ink3: #8a857d;
+  --ink4: #b8b3ab;
+
+  --china: #c94040;
+  --china-dim: rgba(201, 64, 64, 0.1);
+  --usa: #2a5ca8;
+  --usa-dim: rgba(42, 92, 168, 0.1);
+  --idea: #2a7a4a;
+  --idea-dim: rgba(42, 122, 74, 0.1);
+  --action: #7a4a2a;
+  --action-dim: rgba(122, 74, 42, 0.1);
+  --gold: #b8960a;
+  --gold-dim: rgba(184, 150, 10, 0.1);
+
+  --radius: 10px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: 'Geist Mono', 'Courier New', monospace;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.stat-number {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink4);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--usa);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Region chips */
+.chip-china {
+  background: color-mix(in srgb, var(--china) 12%, transparent);
+  color: var(--china);
+  border: 1px solid color-mix(in srgb, var(--china) 30%, transparent);
+}
+
+.chip-usa {
+  background: color-mix(in srgb, var(--usa) 12%, transparent);
+  color: var(--usa);
+  border: 1px solid color-mix(in srgb, var(--usa) 30%, transparent);
+}
+
+.chip-idea {
+  background: color-mix(in srgb, var(--idea) 12%, transparent);
+  color: var(--idea);
+  border: 1px solid color-mix(in srgb, var(--idea) 30%, transparent);
+}
+
+.chip-action {
+  background: color-mix(in srgb, var(--action) 12%, transparent);
+  color: var(--action);
+  border: 1px solid color-mix(in srgb, var(--action) 30%, transparent);
+}
+
+/* Card base */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Input base */
+input, textarea, select {
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--usa);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--ink4);
+}
+
+/* Button base */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
