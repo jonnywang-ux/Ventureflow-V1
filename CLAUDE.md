@@ -238,18 +238,13 @@ Critical E2E flows:
 - `src/components/import/ImportUploader.tsx` — Client Component: file drop zone, upload, results preview, save to notes
 - `src/components/import/ImportHistory.tsx` — Client Component: list of past imports with status indicators
 
-### Phase 11: CI/CD + Deployment — IN PROGRESS
+### Phase 11: CI/CD + Deployment — DONE
 - GitHub repo: `jonnywang-ux/Ventureflow-V1` (branch: `main`)
 - Vercel project: `ventureflow-v1` — auto-deploys on push to `main`
 - Supabase: all 4 migrations applied (001–004), test user `playwright@ventureflow.test` in `team_members`
 - GitHub Actions secrets configured: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, PLAYWRIGHT_TEST_EMAIL, PLAYWRIGHT_TEST_PASSWORD
-- Vercel env vars needed: same set + NEXT_PUBLIC_APP_URL (set to Vercel domain after first successful deploy)
-- Build fixes applied: mammoth+xlsx added to dependencies, Supabase GenericStringError casts fixed
-
-**Known issues to investigate on live deploy:**
-- Verify all pages render correctly with real Supabase data
-- Confirm auth redirect loop does not occur in production
-- Test import + synthesis flows with real Anthropic API key
+- Vercel env vars set: same set + NEXT_PUBLIC_APP_URL (Vercel domain)
+- Build fixes applied: mammoth+xlsx in dependencies, Supabase GenericStringError casts fixed, deprecated npm package warnings resolved
 
 ### Phase 10: E2E Tests — DONE
 - `playwright.config.ts` — setup + chromium projects, storageState auth, workers:1
@@ -270,6 +265,18 @@ Critical E2E flows:
 - `src/app/(dashboard)/synthesis/page.tsx` — Server Component: fetches thesis, renders viewer + generate button
 - `src/components/synthesis/SynthesisViewer.tsx` — Client Component: renders markdown prose, copy button
 - `src/components/synthesis/GenerateSynthesisButton.tsx` — Client Component: confirm dialog, loading, router.refresh()
+
+---
+
+## TODO (Next Sessions)
+
+### FEATURE — File Storage + Real-time Import Updates (PRIORITY 1)
+- **Goal**: All 3 users' uploaded files stored in Supabase Storage; all users see new imports live
+- **Steps**:
+  1. Create `imports` bucket in Supabase Storage (private)
+  2. New migration: add `file_path TEXT` column to `import_history`
+  3. Update `src/app/api/import/route.ts` — upload file buffer to Storage bucket under `{team_id}/{filename}`
+  4. Update `src/components/import/ImportHistory.tsx` — add Supabase Realtime subscription on `import_history` filtered by `team_id`
 
 ---
 
