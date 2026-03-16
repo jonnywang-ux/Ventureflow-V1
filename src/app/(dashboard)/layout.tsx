@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import GlobalSearch from '@/components/search/GlobalSearch'
 
 const NAV_LINKS = [
@@ -26,7 +26,8 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const { data: member } = await supabase
+  const admin = createAdminClient()
+  const { data: member } = await admin
     .from('team_members')
     .select('id, initials, color, team_id')
     .eq('user_id', user.id)
