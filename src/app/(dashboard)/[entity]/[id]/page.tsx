@@ -387,10 +387,10 @@ export default async function EntityDetailPage({ params }: PageParams) {
       </Link>
 
       {/* Entity summary */}
-      {segment === 'contacts' && <ContactSummary entity={entityData as Contact} />}
-      {segment === 'ideas' && <IdeaSummary entity={entityData as Idea} />}
-      {segment === 'actions' && <ActionSummary entity={entityData as Action} />}
-      {segment === 'notes' && <NoteSummary entity={entityData as Note} />}
+      {segment === 'contacts' && <ContactSummary entity={entityData as unknown as Contact} />}
+      {segment === 'ideas' && <IdeaSummary entity={entityData as unknown as Idea} />}
+      {segment === 'actions' && <ActionSummary entity={entityData as unknown as Action} />}
+      {segment === 'notes' && <NoteSummary entity={entityData as unknown as Note} />}
 
       {/* Metadata footer */}
       <div
@@ -404,7 +404,7 @@ export default async function EntityDetailPage({ params }: PageParams) {
         }}
       >
         {(() => {
-          const addedBy = (entityData as { added_by: string }).added_by
+          const addedBy = (entityData as unknown as { added_by: string }).added_by
           const m = teamMembers.find((tm) => tm.user_id === addedBy)
           return m ? (
             <>
@@ -416,7 +416,7 @@ export default async function EntityDetailPage({ params }: PageParams) {
           ) : null
         })()}
         <span style={{ fontSize: '11px', color: 'var(--ink4)', fontFamily: 'Geist Mono, monospace', marginLeft: 'auto' }}>
-          {formatDate((entityData as { created_at: string }).created_at)}
+          {formatDate((entityData as unknown as { created_at: string }).created_at)}
         </span>
       </div>
 
