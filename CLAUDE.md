@@ -238,6 +238,15 @@ Critical E2E flows:
 - `src/components/import/ImportUploader.tsx` — Client Component: file drop zone, upload, results preview, save to notes
 - `src/components/import/ImportHistory.tsx` — Client Component: list of past imports with status indicators
 
+### Phase 12: File Storage + Realtime Imports + PDF/MD Support — DONE
+- `supabase/migrations/005_import_file_path.sql` — adds `file_path TEXT`, expands `import_type` CHECK to include `pdf` and `md`
+- `src/lib/parsers/pdfParser.ts` — pdf-parse dynamic import
+- `src/lib/parsers/mdParser.ts` — UTF-8 buffer decode
+- `src/app/api/import/route.ts` — Storage upload via `createAdminClient()` under `{team_id}/{filename}`, stores `file_path`, accepts PDF + MD
+- `src/components/import/ImportUploader.tsx` — accept + hint text expanded for .pdf and .md
+- `src/components/import/ImportHistory.tsx` — `teamId` prop, `useState` seeded from server, Supabase Realtime `postgres_changes` subscription
+- `src/app/(dashboard)/import/page.tsx` — passes `teamId` to `<ImportHistory>`
+
 ### Phase 11: CI/CD + Deployment — DONE
 - GitHub repo: `jonnywang-ux/Ventureflow-V1` (branch: `main`)
 - Vercel project: `ventureflow-v1` — auto-deploys on push to `main`
@@ -270,13 +279,7 @@ Critical E2E flows:
 
 ## TODO (Next Sessions)
 
-### FEATURE — File Storage + Real-time Import Updates (PRIORITY 1)
-- **Goal**: All 3 users' uploaded files stored in Supabase Storage; all users see new imports live
-- **Steps**:
-  1. Create `imports` bucket in Supabase Storage (private)
-  2. New migration: add `file_path TEXT` column to `import_history`
-  3. Update `src/app/api/import/route.ts` — upload file buffer to Storage bucket under `{team_id}/{filename}`
-  4. Update `src/components/import/ImportHistory.tsx` — add Supabase Realtime subscription on `import_history` filtered by `team_id`
+No active features queued. All planned phases complete.
 
 ---
 
