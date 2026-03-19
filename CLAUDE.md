@@ -182,104 +182,19 @@ Critical E2E flows:
 - Feature branches from `main`, PRs required
 - Vercel preview on PR, production on merge to `main`
 
-## Build Progress
+## Status
 
-> Update this section at the end of each phase before committing. New sessions load this file automatically.
+All features shipped. Project is in maintenance mode — bug fixes and improvements only.
 
-### Phase 1: Project Scaffold — DONE
-- `package.json`, `tsconfig.json`, `next.config.ts`, `.env.example`
-- `src/app/globals.css` — full design system (CSS vars, fonts, card styles)
-- `src/app/layout.tsx`, `src/middleware.ts`
-- `src/lib/supabase/server.ts`, `src/lib/supabase/client.ts`
-- `src/types/index.ts` — Contact, Idea, Action, Note, TeamMember types
+**What's built:** auth (magic link), dashboard, contacts, ideas, actions, notes, global search (Ctrl+K), comment threads, AI scan modal (name cards + notes), import page (docx/xlsx/pdf/md), synthesis page (AI thesis), file storage, realtime import history, CI/CD + Vercel deploy, E2E tests.
 
-### Phase 2: Database — DONE
-- `supabase/migrations/001_schema.sql` — all tables with team_id FK
-- `supabase/migrations/002_rls_policies.sql` — RLS for all tables
-- `supabase/migrations/003_activity_triggers.sql` — auto activity_log
-- `supabase/seed.sql` — sample data for KT/DZ/JW
-
-### Phase 3: Auth + Dashboard Shell — DONE
-- `src/app/(auth)/login/page.tsx` — magic link login
-- `src/app/(dashboard)/layout.tsx` — sidebar nav, getUser() guard
-- `src/app/(dashboard)/page.tsx` — dashboard: activity feed + team chips
-- UI primitives: Avatar, RegionChip, WarmthBadge, EmptyState
-
-### Phase 4: Pages + Modals + Server Actions — DONE
-- `src/app/(dashboard)/contacts/page.tsx` + `actions.ts` (createContact, updateContact)
-- `src/app/(dashboard)/ideas/page.tsx` + `actions.ts` (createIdea, voteOnIdea)
-- `src/app/(dashboard)/actions/page.tsx` + `actions.ts` (createAction, completeAction)
-- `src/app/(dashboard)/notes/page.tsx` + `actions.ts` (createNote)
-- Modals: AddContactModal, AddIdeaModal, AddActionModal, AddNoteModal
-- Component: VoteBar (toggle +1/-1, fills var(--idea)/var(--china))
-
-### Phase 5: Global Search — DONE
-- `src/app/api/search/route.ts` — GET /api/search?q=, queries contacts/ideas/actions/notes, returns SearchResult[]
-- `src/components/search/GlobalSearch.tsx` — Ctrl+K overlay, debounced fetch, arrow-key nav, Esc to close
-- `src/app/(dashboard)/layout.tsx` — imports GlobalSearch, Ctrl+K hint in nav bar
-
-### Phase 6: Comment Threads — DONE
-- `supabase/migrations/004_comments.sql` — activity trigger for comment inserts (SECURITY DEFINER)
-- `src/components/comments/CommentThread.tsx` — useOptimistic, useTransition, add/delete comments
-- `src/app/(dashboard)/[entity]/[id]/page.tsx` — entity detail page with summary card + CommentThread
-- `src/app/(dashboard)/[entity]/[id]/actions.ts` — createComment, deleteComment server actions
-- Updated contacts/ideas/actions/notes list pages to link cards to detail pages
-
-### Phase 7: AI Scan Modal — DONE
-- `src/app/api/scan/route.ts` — multipart POST, namecard (image→base64→Claude) + notes (text+docx→Claude), Zod validation
-- `src/lib/ai/extraction.ts` — nameCardSchema, notesSchema, extractFromNameCard, extractFromNotes, ExtractionError
-- `src/lib/ai/prompts.ts` — NAMECARD_SYSTEM_PROMPT, NOTES_SYSTEM_PROMPT (strict JSON, field examples)
-- `src/components/scan/ScanModal.tsx` — two-mode UI: image drop zone → editable contact form; textarea+docx → notes preview
-
-### Phase 8: Import Page — DONE
-- `src/app/(dashboard)/import/page.tsx` — Server Component, fetches import_history, two-column layout
-- `src/app/api/import/route.ts` — POST, parse docx/xlsx, run Claude extraction, record in import_history
-- `src/lib/parsers/docxParser.ts`, `xlsxParser.ts` — file parsers
-- `src/components/import/ImportUploader.tsx` — Client Component: file drop zone, upload, results preview, save to notes
-- `src/components/import/ImportHistory.tsx` — Client Component: list of past imports with status indicators
-
-### Phase 12: File Storage + Realtime Imports + PDF/MD Support — DONE
-- `supabase/migrations/005_import_file_path.sql` — adds `file_path TEXT`, expands `import_type` CHECK to include `pdf` and `md`
-- `src/lib/parsers/pdfParser.ts` — pdf-parse dynamic import
-- `src/lib/parsers/mdParser.ts` — UTF-8 buffer decode
-- `src/app/api/import/route.ts` — Storage upload via `createAdminClient()` under `{team_id}/{filename}`, stores `file_path`, accepts PDF + MD
-- `src/components/import/ImportUploader.tsx` — accept + hint text expanded for .pdf and .md
-- `src/components/import/ImportHistory.tsx` — `teamId` prop, `useState` seeded from server, Supabase Realtime `postgres_changes` subscription
-- `src/app/(dashboard)/import/page.tsx` — passes `teamId` to `<ImportHistory>`
-
-### Phase 11: CI/CD + Deployment — DONE
-- GitHub repo: `jonnywang-ux/Ventureflow-V1` (branch: `main`)
-- Vercel project: `ventureflow-v1` — auto-deploys on push to `main`
-- Supabase: all 4 migrations applied (001–004), test user `playwright@ventureflow.test` in `team_members`
-- GitHub Actions secrets configured: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, PLAYWRIGHT_TEST_EMAIL, PLAYWRIGHT_TEST_PASSWORD
-- Vercel env vars set: same set + NEXT_PUBLIC_APP_URL (Vercel domain)
-- Build fixes applied: mammoth+xlsx in dependencies, Supabase GenericStringError casts fixed, deprecated npm package warnings resolved
-
-### Phase 10: E2E Tests — DONE
-- `playwright.config.ts` — setup + chromium projects, storageState auth, workers:1
-- `tests/auth.setup.ts` — logs in via email+password, saves to `tests/.auth/user.json`
-- `tests/fixtures/auth.ts` — authenticated page fixture
-- `tests/fixtures/data.ts` — test data constants + mock API responses
-- `tests/e2e/auth.spec.ts` — login, error state, dashboard stat cards + nav
-- `tests/e2e/contacts.spec.ts` — add contact → list + activity feed + Ctrl+K search
-- `tests/e2e/ideas.spec.ts` — add idea → vote → count changes
-- `tests/e2e/import.spec.ts` — mock /api/import → results → save to Notes → Notes tab
-- `tests/e2e/synthesis.spec.ts` — mock /api/synthesis → loading → thesis with ## headings
-- data-testid attributes added to all components used by tests
-
-### Phase 9: Synthesis Page — DONE
-- `src/lib/ai/synthesis-prompts.ts` — SYNTHESIS_SYSTEM_PROMPT (prose thesis, 500–1500 words, 5 sections)
-- `src/lib/ai/synthesis.ts` — SynthesisError, generateSynthesis(teamId): fetches contacts/notes/ideas, calls Claude
-- `src/app/api/synthesis/route.ts` — POST /api/synthesis: auth, generateSynthesis, upsert thesis table
-- `src/app/(dashboard)/synthesis/page.tsx` — Server Component: fetches thesis, renders viewer + generate button
-- `src/components/synthesis/SynthesisViewer.tsx` — Client Component: renders markdown prose, copy button
-- `src/components/synthesis/GenerateSynthesisButton.tsx` — Client Component: confirm dialog, loading, router.refresh()
+**Infrastructure:** GitHub `jonnywang-ux/Ventureflow-V1` → Vercel `ventureflow-v1` (auto-deploy on push). Supabase migrations 001–006 applied.
 
 ---
 
-## TODO (Next Sessions)
+## Known Issues / Improvements
 
-No active features queued. All planned phases complete.
+_Add bugs and improvements here as they are found. Remove when fixed._
 
 ---
 

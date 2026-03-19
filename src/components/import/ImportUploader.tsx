@@ -2,12 +2,15 @@
 
 import React, { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createNote } from '@/app/(dashboard)/notes/actions'
+import { saveImportResults } from '@/app/(dashboard)/import/actions'
+import type { ExtractedContact, ExtractedIdea } from '@/lib/ai/extraction'
 
 interface StructuredResult {
   title: string
   tags: string[]
   content: string
+  contacts: ExtractedContact[]
+  ideas: ExtractedIdea[]
 }
 
 interface ImportResult {
@@ -75,18 +78,20 @@ export default function ImportUploader() {
     setError(null)
     startSave(async () => {
       try {
-        const formData = new FormData()
-        formData.set('title', result.structured.title)
-        formData.set('content', result.structured.content)
-        formData.set('tags', result.structured.tags.join(','))
-
-        const res = await createNote(formData)
+        const res = await saveImportResults({
+          note: {
+            title: result.structured.title,
+            content: result.structured.content,
+            tags: result.structured.tags,
+          },
+          contacts: result.structured.contacts ?? [],
+          ideas: result.structured.ideas ?? [],
+        })
 
         if (res.success) {
           router.push('/notes')
         } else {
-          const errMsg = typeof res.error === 'string' ? res.error : 'Failed to save note'
-          setError(errMsg)
+          setError(res.error || 'Failed to save')
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Save failed'
@@ -318,6 +323,69 @@ export default function ImportUploader() {
               : result.structured.content}
           </div>
 
+          {(result.structured.contacts ?? []).length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{
+                fontFamily: 'Geist Mono, monospace',
+                fontSize: '11px',
+                color: 'var(--ink3)',
+                margin: '0 0 8px 0',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}>
+                Contacts found ({result.structured.contacts.length})
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {result.structured.contacts.map((c, i) => (
+                  <div key={i} style={{
+                    padding: '8px 12px',
+                    backgroundColor: 'var(--bg2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
+                    fontSize: '12px',
+                    fontFamily: 'Geist Mono, monospace',
+                    color: 'var(--ink2)',
+                  }}>
+                    <strong>{c.name}</strong>
+                    {c.role && ` — ${c.role}`}
+                    {c.organization && `, ${c.organization}`}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(result.structured.ideas ?? []).length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{
+                fontFamily: 'Geist Mono, monospace',
+                fontSize: '11px',
+                color: 'var(--ink3)',
+                margin: '0 0 8px 0',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}>
+                Ideas found ({result.structured.ideas.length})
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {result.structured.ideas.map((idea, i) => (
+                  <div key={i} style={{
+                    padding: '8px 12px',
+                    backgroundColor: 'var(--bg2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
+                    fontSize: '12px',
+                    fontFamily: 'Geist Mono, monospace',
+                    color: 'var(--ink2)',
+                  }}>
+                    <strong>{idea.title}</strong>
+                    {idea.description && <div style={{ color: 'var(--ink3)', marginTop: '2px' }}>{idea.description.slice(0, 100)}{idea.description.length > 100 && '...'}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <details style={{
             marginBottom: '16px',
             cursor: 'pointer',
@@ -379,7 +447,7 @@ export default function ImportUploader() {
                 }
               }}
             >
-              {isSaving ? 'Saving...' : 'Save to Notes'}
+              {isSaving ? 'Saving...' : 'Save All'}
             </button>
 
             <button

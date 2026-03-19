@@ -6,7 +6,7 @@ import type { ActionResult, Note } from '@/types'
 
 const schema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
-  content: z.string().min(1, 'Content is required').max(10000),
+  content: z.string().min(1, 'Content is required').max(50000),
   tags: z.string().optional(),
 })
 

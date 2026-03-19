@@ -17,11 +17,32 @@ export const nameCardSchema = z.object({
   region: z.enum(['china', 'usa']).nullable(),
 })
 
+const extractedContactSchema = z.object({
+  name: z.string().min(1),
+  role: z.string().optional().default(''),
+  organization: z.string().optional().default(''),
+  email: z.string().optional().default(''),
+  phone: z.string().optional().default(''),
+  region: z.enum(['china', 'usa', 'global']).nullable().optional(),
+})
+
+const extractedIdeaSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().optional().default(''),
+  tags: z.array(z.string()),
+  region: z.enum(['china', 'usa', 'global']).nullable().optional(),
+})
+
 export const notesSchema = z.object({
   title: z.string().min(1).max(100),
   tags: z.array(z.string()),
   content: z.string().min(1),
+  contacts: z.array(extractedContactSchema).optional().default([]),
+  ideas: z.array(extractedIdeaSchema).optional().default([]),
 })
+
+export type ExtractedContact = z.infer<typeof extractedContactSchema>
+export type ExtractedIdea = z.infer<typeof extractedIdeaSchema>
 
 export type NameCardData = z.infer<typeof nameCardSchema>
 export type NotesData = z.infer<typeof notesSchema>
@@ -110,7 +131,7 @@ export async function extractFromNotes(text: string): Promise<NotesData> {
   try {
     response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: NOTES_SYSTEM_PROMPT,
       messages: [
         {
